@@ -119,6 +119,171 @@
         .dot-orange { background: #fd7e14; }
         .dot-purple { background: #6f42c1; }
 
+        /* Legend item - bisa diklik */
+        .legend-item {
+            position: relative;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            transition: background 0.15s, border-color 0.15s;
+            user-select: none;
+        }
+        .legend-item:hover {
+            background: #f0f0f0;
+            border-color: #ddd;
+        }
+        .legend-item.active-legend {
+            border-color: currentColor;
+            background: #f8f8f8;
+        }
+
+        /* Tooltip saat hover */
+        .legend-item .tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            color: white;
+            font-size: 11px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .legend-item .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #1a1a2e;
+        }
+        .legend-item:hover .tooltip { display: block; }
+
+        /* ===== MODAL PENJELASAN ALGORITMA ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: white;
+            border-radius: 14px;
+            padding: 28px 32px;
+            width: 560px;
+            max-width: 95vw;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+            animation: modalIn 0.2s ease;
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform: translateY(-16px) scale(0.97); }
+            to   { opacity:1; transform: translateY(0)     scale(1); }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 14px; right: 18px;
+            background: none; border: none;
+            font-size: 20px; cursor: pointer;
+            color: #888; line-height: 1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        .modal-close:hover { background: #f0f0f0; color: #333; }
+
+        .modal-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-subtitle {
+            font-size: 12px;
+            color: #888;
+            margin: 0 0 16px 0;
+        }
+        .modal-section {
+            margin-bottom: 14px;
+        }
+        .modal-section h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .modal-section p, .modal-section li {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.7;
+            margin: 0;
+        }
+        .modal-section ul {
+            margin: 4px 0 0 18px;
+            padding: 0;
+        }
+        .modal-section li { margin-bottom: 3px; }
+
+        .modal-stripe {
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            border-radius: 2px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .modal-tag {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 2px 3px 2px 0;
+        }
+        .tag-pro  { background: #d4edda; color: #155724; }
+        .tag-con  { background: #f8d7da; color: #721c24; }
+
+        /* Tabel kompleksitas */
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .modal-table th {
+            background: #f1f3f5;
+            padding: 5px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #444;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .modal-table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #555;
+        }
+
         /* ===== INFO BOX ===== */
         .info-box {
             margin-top: 20px;
@@ -249,10 +414,30 @@
 
     <!-- LEGEND -->
     <div class="legend">
-        <span><span class="dot dot-green"></span>BFS</span>
-        <span><span class="dot dot-blue"></span>DFS</span>
-        <span><span class="dot dot-orange"></span>Greedy</span>
-        <span><span class="dot dot-purple"></span>A*</span>
+        <span class="legend-item" onclick="openModal('bfs')">
+            <span class="dot dot-green"></span>BFS
+            <span class="tooltip">Telusuri level per level menggunakan Queue</span>
+        </span>
+        <span class="legend-item" onclick="openModal('dfs')">
+            <span class="dot dot-blue"></span>DFS
+            <span class="tooltip">Masuk sedalam mungkin menggunakan Rekursi</span>
+        </span>
+        <span class="legend-item" onclick="openModal('greedy')">
+            <span class="dot dot-orange"></span>Greedy
+            <span class="tooltip">Pilih node paling dekat ke tujuan berdasarkan h(n)</span>
+        </span>
+        <span class="legend-item" onclick="openModal('astar')">
+            <span class="dot dot-purple"></span>A*
+            <span class="tooltip">Optimal: kombinasikan biaya nyata g(n) + estimasi h(n)</span>
+        </span>
+    </div>
+
+    <!-- MODAL PENJELASAN ALGORITMA -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+        <div class="modal-box" id="modalBox">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <div id="modalContent"></div>
+        </div>
     </div>
 
     <!-- INFO BOX -->
@@ -311,6 +496,161 @@ const algoBadge = {
     greedy: "badge-greedy",
     astar:  "badge-astar"
 };
+
+// ===== DATA PENJELASAN ALGORITMA =====
+const algoInfo = {
+    bfs: {
+        title: "BFS — Breadth-First Search",
+        subtitle: "Pencarian Melebar / Lapis per Lapis",
+        color: "#28a745",
+        icon: "🟢",
+        struktur: "Queue (Antrian) — FIFO: First In, First Out",
+        cara: "BFS menelusuri semua node pada kedalaman (level) yang sama sebelum turun ke level berikutnya. Ibarat menyebar melingkar dari titik awal.",
+        langkah: [
+            "Masukkan node awal ke dalam Queue.",
+            "Ambil node paling depan dari Queue (popleft).",
+            "Tandai node sebagai sudah dikunjungi.",
+            "Masukkan semua tetangga yang belum dikunjungi ke belakang Queue.",
+            "Ulangi hingga ditemukan tujuan atau Queue kosong."
+        ],
+        pros: ["Menjamin jalur terpendek (jumlah langkah minimum)", "Cocok untuk graph dengan bobot seragam"],
+        cons: ["Memori besar — menyimpan semua node per level", "Tidak efisien jika tujuan ada di kedalaman jauh"],
+        kompleksitas: { waktu: "O(V + E)", ruang: "O(V)" },
+        konteks: "Pada simulasi ini, BFS menjamin rute dengan tahap paling sedikit dari Sampah Masuk ke Grade Terbaik."
+    },
+    dfs: {
+        title: "DFS — Depth-First Search",
+        subtitle: "Pencarian Mendalam / Masuk Sedalam Mungkin",
+        color: "#007bff",
+        icon: "🔵",
+        struktur: "Stack (Rekursi) — LIFO: Last In, First Out",
+        cara: "DFS menelusuri satu jalur sedalam mungkin sebelum backtrack (kembali) dan mencoba jalur lain. Ibarat menelusuri lorong satu per satu sampai buntu, lalu kembali ke persimpangan.",
+        langkah: [
+            "Mulai dari node awal, tandai sebagai dikunjungi.",
+            "Masuk ke tetangga pertama yang belum dikunjungi.",
+            "Terus masuk sedalam mungkin hingga mentok atau tujuan ditemukan.",
+            "Jika mentok (tidak ada tetangga baru), backtrack ke node sebelumnya.",
+            "Coba tetangga lain yang belum dikunjungi."
+        ],
+        pros: ["Hemat memori dibanding BFS", "Cepat jika tujuan ada di jalur awal yang dalam"],
+        cons: ["Tidak menjamin jalur terpendek", "Bisa terjebak di jalur panjang atau buntu dulu"],
+        kompleksitas: { waktu: "O(V + E)", ruang: "O(V) rekursi" },
+        konteks: "Pada simulasi ini, DFS menelusuri satu jalur proses daur ulang sampai menemukan hasil akhir, baru kemudian backtrack jika perlu."
+    },
+    greedy: {
+        title: "Greedy Best-First Search",
+        subtitle: "Pilih yang Terdekat ke Tujuan Berdasarkan Heuristik",
+        color: "#fd7e14",
+        icon: "🟠",
+        struktur: "Priority Queue (Min-Heap) berdasarkan h(n)",
+        cara: "Greedy selalu memilih node yang estimasinya paling dekat ke tujuan, tanpa mempertimbangkan berapa panjang jalur yang sudah ditempuh. Cepat, tapi bisa melewatkan jalur yang sebenarnya lebih baik.",
+        langkah: [
+            "Masukkan node awal ke Priority Queue dengan prioritas h(node).",
+            "Ambil node dengan nilai h(n) terkecil dari heap.",
+            "Jika node adalah tujuan, selesai.",
+            "Masukkan semua tetangga dengan prioritas h(tetangga) masing-masing.",
+            "Ulangi — selalu pilih node dengan h terkecil."
+        ],
+        pros: ["Lebih cepat dari BFS/DFS karena diarahkan heuristik", "Efisien untuk graph besar jika heuristik akurat"],
+        cons: ["Tidak optimal — tidak mempertimbangkan biaya nyata g(n)", "Bisa salah jika heuristik tidak akurat"],
+        kompleksitas: { waktu: "O(E log V)", ruang: "O(V)" },
+        heuristik: "h(n) = estimasi jumlah langkah minimum dari node n ke T. Node buntu (G, I, J) diberi nilai 99 agar tidak diprioritaskan.",
+        konteks: "Pada simulasi ini, Greedy memilih tahapan proses yang 'terasa' paling dekat ke Grade Terbaik berdasarkan estimasi langkah."
+    },
+    astar: {
+        title: "A* Search (A-Star)",
+        subtitle: "Optimal: Biaya Nyata + Estimasi Heuristik",
+        color: "#6f42c1",
+        icon: "🟣",
+        struktur: "Priority Queue (Min-Heap) berdasarkan f(n) = g(n) + h(n)",
+        cara: "A* menggabungkan keunggulan BFS (menjamin optimal) dan Greedy (diarahkan heuristik). Setiap node dinilai dengan f(n) = g(n) + h(n), sehingga A* mempertimbangkan seberapa jauh sudah berjalan DAN seberapa jauh estimasi ke tujuan.",
+        langkah: [
+            "Masukkan node awal dengan f = 0 + h(start).",
+            "Ambil node dengan f(n) terkecil dari Priority Queue.",
+            "Jika node adalah tujuan, selesai — jalur ini dijamin optimal.",
+            "Untuk setiap tetangga: hitung g_baru = g_sekarang + 1, f_baru = g_baru + h(tetangga).",
+            "Masukkan tetangga ke heap dengan f_baru sebagai prioritas.",
+            "Ulangi hingga tujuan ditemukan."
+        ],
+        pros: ["Optimal — menjamin jalur dengan total biaya terkecil", "Efisien — tidak menjelajahi semua jalur seperti BFS murni", "Lebih cerdas dari Greedy karena mempertimbangkan g(n)"],
+        cons: ["Lebih lambat dari Greedy jika heuristik sangat akurat", "Butuh heuristik yang admissible (tidak melebih-lebihkan)"],
+        kompleksitas: { waktu: "O(E log V)", ruang: "O(V)" },
+        heuristik: "f(n) = g(n) + h(n) | g(n) = jumlah langkah nyata dari M ke n | h(n) = estimasi langkah dari n ke T",
+        konteks: "Pada simulasi ini, A* menemukan jalur proses daur ulang yang paling efisien — mempertimbangkan tahap yang sudah dilalui sekaligus estimasi sisa tahap."
+    }
+};
+
+// ===== FUNGSI MODAL =====
+function openModal(algo) {
+    const info = algoInfo[algo];
+    const c = info.color;
+
+    const prosHtml = info.pros.map(p => `<span class="modal-tag tag-pro">✓ ${p}</span>`).join(" ");
+    const consHtml = info.cons.map(p => `<span class="modal-tag tag-con">✗ ${p}</span>`).join(" ");
+    const langkahHtml = info.langkah.map((l, i) =>
+        `<li><b>${i+1}.</b> ${l}</li>`
+    ).join("");
+
+    const heuristikSection = info.heuristik ? `
+        <div class="modal-section">
+            <h4>📐 Fungsi Heuristik</h4>
+            <p>${info.heuristik}</p>
+        </div>` : "";
+
+    document.getElementById("modalContent").innerHTML = `
+        <div class="modal-title">
+            <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${c};flex-shrink:0;"></span>
+            ${info.title}
+        </div>
+        <p class="modal-subtitle">${info.subtitle}</p>
+
+        <div class="modal-section">
+            <h4>🗂️ Struktur Data</h4>
+            <p>${info.struktur}</p>
+        </div>
+
+        <div class="modal-section">
+            <h4>💡 Cara Kerja</h4>
+            <p>${info.cara}</p>
+        </div>
+
+        <div class="modal-section">
+            <h4>📋 Langkah-Langkah</h4>
+            <ul>${langkahHtml}</ul>
+        </div>
+
+        ${heuristikSection}
+
+        <div class="modal-section">
+            <h4>⚖️ Kelebihan & Kekurangan</h4>
+            <div style="margin-top:6px;">${prosHtml}</div>
+            <div style="margin-top:6px;">${consHtml}</div>
+        </div>
+
+        <div class="modal-section">
+            <h4>📊 Kompleksitas</h4>
+            <table class="modal-table">
+                <thead><tr><th>Waktu</th><th>Ruang (Memori)</th></tr></thead>
+                <tbody><tr><td>${info.kompleksitas.waktu}</td><td>${info.kompleksitas.ruang}</td></tr></tbody>
+            </table>
+        </div>
+
+        <div class="modal-section">
+            <h4>🔗 Dalam Konteks Simulasi Ini</h4>
+            <p>${info.konteks}</p>
+        </div>
+    `;
+
+    document.getElementById("modalOverlay").classList.add("open");
+}
+
+function closeModal() {
+    document.getElementById("modalOverlay").classList.remove("open");
+}
+
+function closeModalOutside(e) {
+    if (e.target === document.getElementById("modalOverlay")) closeModal();
+}
 
 // ===== VIS.JS =====
 const nodes = new vis.DataSet(
