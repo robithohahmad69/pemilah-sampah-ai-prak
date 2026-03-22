@@ -1,23 +1,26 @@
-# dfs.py
+def dfs(graph, start):
+    visited = set()
+    path = []
 
-def dfs(graph, start, visited=None, path=None):
-    if visited is None:
-        visited = set()
-    if path is None:
-        path = [start]
+    def dfs_recursive(node):
+        if node in visited:
+            return False
 
-    print("DFS Kunjungi:", start)
+        visited.add(node)
+        path.append(node)
+        print("DFS Kunjungi:", node)
 
-    if start == "T":
-        print("✅ DFS sampai tujuan:", path)
-        return path
+        # Berhenti di node tujuan ATAU node jalan buntu
+        if node == "T" or node == "G" or node == "J":
+            print("DFS selesai di:", node, "| Jalur:", " -> ".join(path))
+            return True
 
-    visited.add(start)
+        for neighbor in graph[node]:
+            if dfs_recursive(neighbor):
+                return True
 
-    for neighbor in graph[start]:
-        if neighbor not in visited:
-            result = dfs(graph, neighbor, visited, path + [neighbor])
-            if result:
-                return result
+        path.pop()
+        return False
 
-    return None
+    dfs_recursive(start)
+    return path if path else None

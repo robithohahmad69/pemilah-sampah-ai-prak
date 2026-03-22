@@ -2,248 +2,498 @@
 <html>
 <head>
     <title>Simulasi Daur Ulang Plastik</title>
-
-    <!-- FONT -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-
-    <!-- VIS.JS -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-
-    <!-- STYLE -->
     <style>
+        * { box-sizing: border-box; }
+
         body {
             font-family: 'Poppins', sans-serif;
             background: #f4f6f9;
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
         }
 
-        .container {
-            width: 950px;
-            margin: 40px auto;
-        }
+        .container { width: 980px; margin: 36px auto; }
 
         .card {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
         }
 
         h2 {
             text-align: center;
+            margin: 0 0 20px 0;
+            color: #1a1a2e;
+            font-size: 20px;
         }
 
+        /* ===== CONTROLS ===== */
         .controls {
             display: flex;
-            justify-content: center;
+            align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
         }
 
-        select, button {
-            padding: 10px;
-            border-radius: 6px;
+        select {
+            flex: 1;
+            min-width: 220px;
+            padding: 10px 12px;
+            border-radius: 8px;
             border: 1px solid #ccc;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+        }
+        select:focus { outline: none; border-color: #007bff; }
+
+        .btn-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
         button {
-            background: #007bff;
-            color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        #network {
-            height: 500px;
-            border: 1px solid #ddd;
+            padding: 9px 16px;
             border-radius: 8px;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        button:active { transform: scale(0.97); }
+
+        /* Warna tiap algoritma */
+        .btn-bfs     { background: #28a745; color: white; }
+        .btn-bfs:hover { background: #1e7e34; }
+
+        .btn-dfs     { background: #007bff; color: white; }
+        .btn-dfs:hover { background: #0056b3; }
+
+        .btn-greedy  { background: #fd7e14; color: white; }
+        .btn-greedy:hover { background: #e8680a; }
+
+        .btn-astar   { background: #6f42c1; color: white; }
+        .btn-astar:hover { background: #5a32a3; }
+
+        /* ===== DESC BOX ===== */
+        .desc-box {
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            background: #eef4ff;
+            border-left: 4px solid #007bff;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #444;
+            line-height: 1.5;
         }
 
+        /* ===== NETWORK ===== */
+        #network {
+            height: 450px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        /* ===== LEGEND ===== */
         .legend {
             margin-top: 10px;
             text-align: center;
+            font-size: 12px;
+            color: #555;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px 16px;
         }
+        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+        .dot-green  { background: #28a745; }
+        .dot-blue   { background: #007bff; }
+        .dot-orange { background: #fd7e14; }
+        .dot-purple { background: #6f42c1; }
 
-        .legend span {
-            margin: 0 10px;
-        }
-
-        .green { color: green; }
-        .blue { color: blue; }
-
-        /* INFO BOX */
+        /* ===== INFO BOX ===== */
         .info-box {
             margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 16px 20px;
+            border-radius: 10px;
             background: #f8f9fa;
-            border-left: 5px solid #007bff;
+            border-left: 5px solid #adb5bd;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .info-box h3 {
+            margin: 0 0 8px 0;
+            font-size: 15px;
+            color: #1a1a2e;
+        }
+        .info-box p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: #444;
+            line-height: 1.6;
+        }
+        .info-box.success {
+            border-left: 5px solid #28a745;
+            background: #f0fff4;
+        }
+        .info-box.success h3 { color: #155724; }
+        .info-box.fail {
+            border-left: 5px solid #dc3545;
+            background: #fff5f5;
+        }
+        .info-box.fail h3 { color: #721c24; }
+
+        /* ===== BADGE ===== */
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .badge-bfs    { background: #d4edda; color: #155724; }
+        .badge-dfs    { background: #cce5ff; color: #004085; }
+        .badge-greedy { background: #ffe5cc; color: #7d3a00; }
+        .badge-astar  { background: #e8d5ff; color: #3b1a6e; }
+
+        /* ===== HEURISTIK INFO TABLE ===== */
+        .h-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .h-table th {
+            background: #f1f3f5;
+            padding: 6px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #444;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .h-table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #555;
+        }
+        .h-table tr.active-row td {
+            font-weight: 600;
+            color: #1a1a2e;
         }
 
-        .success {
-            border-left: 5px solid green;
+        /* ===== CHIPS ===== */
+        .path-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 10px;
         }
-
-        .fail {
-            border-left: 5px solid red;
+        .node-chip {
+            border-radius: 5px;
+            padding: 3px 9px;
+            font-size: 12px;
+            color: #333;
+            background: #e9ecef;
         }
+        .chip-success   { background: #28a745; color: white; }
+        .chip-fail      { background: #e9ecef; color: #555; }
+        .chip-fail-end  { background: #dc3545; color: white; font-weight: 600; }
+        .arrow-sep      { font-size: 12px; color: #999; }
+        .arrow-success  { color: #28a745; }
+        .arrow-fail     { color: #dc3545; }
     </style>
 </head>
-
 <body>
 
 <div class="container">
-    <div class="card">
+  <div class="card">
 
-        <h2>Simulasi Daur Ulang Plastik</h2>
+    <h2>♻️ Simulasi Pemilahan Sampah Plastik</h2>
 
-        <div class="controls">
-            <select id="pilihan">
-                <option value="1">Sampah sesuai kriteria</option>
-                <option value="2">Tidak sesuai kriteria</option>
-                <option value="3">Bukan sampah plastik</option>
-            </select>
+    <!-- CONTROLS -->
+    <div class="controls">
+        <select id="pilihan" onchange="updateDesc()">
+            <option value="1">Skenario 1 — Plastik campuran belum disortir</option>
+            <option value="2">Skenario 2 — Plastik seragam, siap cuci massal</option>
+            <option value="3">Skenario 3 — Plastik sudah tersortir rapi</option>
+            <option value="4">Skenario 4 — Tersortir, ada indikasi zat kimia</option>
+            <option value="5">Skenario 5 — Cuci massal, polimer asing belum terdeteksi</option>
+            <option value="6">Skenario 6 — Plastik terlihat rusak parah sejak awal</option>
+        </select>
 
-            <button onclick="runBFS()">BFS</button>
-            <button onclick="runDFS()">DFS</button>
+        <div class="btn-group">
+            <button class="btn-bfs"    onclick="runAlgo('bfs')">▶ BFS</button>
+            <button class="btn-dfs"    onclick="runAlgo('dfs')">▶ DFS</button>
+            <button class="btn-greedy" onclick="runAlgo('greedy')">★ Greedy</button>
+            <button class="btn-astar"  onclick="runAlgo('astar')">✦ A*</button>
         </div>
-
-        <div id="network"></div>
-
-        <div class="legend">
-            <span class="green">● BFS (Hijau)</span>
-            <span class="blue">● DFS (Biru)</span>
-        </div>
-
-        <!-- INFO -->
-        <div id="infoBox" class="info-box">
-            <h3>Hasil Analisis</h3>
-            <p id="status">Silakan pilih kondisi dan jalankan algoritma</p>
-            <p id="path"></p>
-        </div>
-
     </div>
+
+    <!-- DESKRIPSI SKENARIO -->
+    <div id="descBox" class="desc-box">
+        📋 Plastik campuran baru masuk — belum disortir, perlu proses lengkap dari awal.
+    </div>
+
+    <!-- GRAPH -->
+    <div id="network"></div>
+
+    <!-- LEGEND -->
+    <div class="legend">
+        <span><span class="dot dot-green"></span>BFS</span>
+        <span><span class="dot dot-blue"></span>DFS</span>
+        <span><span class="dot dot-orange"></span>Greedy</span>
+        <span><span class="dot dot-purple"></span>A*</span>
+    </div>
+
+    <!-- INFO BOX -->
+    <div id="infoBox" class="info-box">
+        <h3>📊 Hasil Analisis</h3>
+        <p id="status">Silakan pilih kondisi dan jalankan algoritma</p>
+        <div id="pathDetail"></div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-// ================= NODE + TOOLTIP =================
+// ===== NODE INFO =====
 const nodeInfo = {
-    M:"Sampah Masuk",
-    A:"Sorting Manual",
-    B:"Bersihkan Label",
-    C:"Pencacahan",
-    D:"Pencucian",
-    E:"Sink-Float",
-    F:"Pengeringan",
-    H:"Ekstrusi",
-    T:"Produk Akhir (Food Grade)",
-    G:"Gagal: Kontaminasi",
-    I:"Gagal: Degradasi",
-    J:"Residu"
+    M: "Sampah Masuk",
+    A: "Sorting Manual",
+    B: "Bersihkan Label",
+    C: "Pencacahan",
+    D: "Pencucian Massal",
+    E: "Pisah Jenis (Sink-Float)",
+    F: "Pengeringan",
+    H: "Peletisasi / Ekstrusi",
+    T: "Grade Terbaik",
+    G: "Grade Rendah",
+    I: "Degradasi Plastik",
+    J: "Residu / Sampah"
 };
 
+// Nilai heuristik tiap node (sama seperti Python)
+const heuristicVal = {
+    M:5, A:4, B:3, C:3, D:3, E:2, F:3, H:1,
+    T:0, G:99, I:99, J:99
+};
+
+const deadEndNodes = ["G", "I", "J"];
+
+// Warna tiap algoritma
+const algoColor = {
+    bfs:    "#28a745",
+    dfs:    "#007bff",
+    greedy: "#fd7e14",
+    astar:  "#6f42c1"
+};
+
+const algoLabel = {
+    bfs:    "BFS",
+    dfs:    "DFS",
+    greedy: "Greedy",
+    astar:  "A*"
+};
+
+const algoBadge = {
+    bfs:    "badge-bfs",
+    dfs:    "badge-dfs",
+    greedy: "badge-greedy",
+    astar:  "badge-astar"
+};
+
+// ===== VIS.JS =====
 const nodes = new vis.DataSet(
     Object.keys(nodeInfo).map(id => ({
-        id:id,
-        label:id,
-        title:nodeInfo[id]
+        id, label: id, title: nodeInfo[id],
+        color: { background: "#e9ecef", border: "#adb5bd" },
+        font: { size: 14, face: "Poppins" }
     }))
 );
 
-// ================= EDGE =================
 const edges = new vis.DataSet([
-    {from:"M",to:"A"},
-    {from:"A",to:"B"},{from:"A",to:"G"},
+    {from:"M",to:"A"},{from:"M",to:"D"},
+    {from:"A",to:"B"},{from:"A",to:"C"},
     {from:"B",to:"C"},
-    {from:"C",to:"D"},
-    {from:"D",to:"E"},{from:"D",to:"J"},
-    {from:"E",to:"F"},{from:"E",to:"G"},
-    {from:"F",to:"H"},
-    {from:"H",to:"T"},{from:"H",to:"I"}
+    {from:"C",to:"E"},
+    {from:"D",to:"C"},{from:"D",to:"I"},
+    {from:"E",to:"H"},{from:"E",to:"F"},{from:"E",to:"I"},
+    {from:"F",to:"G"},
+    {from:"H",to:"T"},
+    {from:"I",to:"J"}
 ]);
 
 const network = new vis.Network(
     document.getElementById("network"),
-    {nodes, edges},
-    {edges:{arrows:"to"}}
+    { nodes, edges },
+    {
+        edges: { arrows:"to", color:{color:"#adb5bd"}, smooth:{type:"curvedCW",roundness:0.1} },
+        nodes: { shape:"box", borderWidth:2, shadow:true },
+        physics: { enabled:true, stabilization:{iterations:200} }
+    }
 );
 
-// ================= RUN =================
-function getStart(){
-    return {
-        "1":"M",
-        "2":"G",
-        "3":"J"
-    }[document.getElementById("pilihan").value];
+// ===== DESKRIPSI SKENARIO =====
+const scenarioDesc = {
+    "1": "📋 Plastik campuran baru masuk — belum disortir, perlu proses lengkap dari awal.",
+    "2": "📋 Plastik seragam jenis, kondisi cukup bersih — siap langsung dicuci massal tanpa sortir manual.",
+    "3": "📋 Plastik sudah tersortir rapi — dapat langsung dicacah tanpa perlu pembersihan label.",
+    "4": "📋 Plastik tersortir tapi ditemukan sisa zat kimia saat pengeringan — butuh pengecekan ulang kualitas.",
+    "5": "📋 Plastik langsung masuk jalur cuci besar — namun kandungan polimer asing belum terdeteksi di awal.",
+    "6": "📋 Plastik terlihat kotor parah sejak awal — kondisi fisik diragukan sebelum proses cuci dimulai."
+};
+
+function updateDesc() {
+    const val = document.getElementById("pilihan").value;
+    document.getElementById("descBox").innerText = scenarioDesc[val];
 }
 
-function runBFS(){
-    run("green", false);
-}
+// ===== RUN ALGORITMA =====
+function runAlgo(algo) {
+    const pilihan = document.getElementById("pilihan").value;
+    resetColors();
 
-function runDFS(){
-    run("blue", true);
-}
+    // Tentukan endpoint dan payload
+    const isHeuristic = algo === "greedy" || algo === "astar";
+    const endpoint = isHeuristic ? "/run_heuristic" : "/run";
 
-function run(color, isDFS){
-    let pilihan = document.getElementById("pilihan").value;
-
-    fetch("/run", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({pilihan})
+    fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pilihan, algo })
     })
     .then(res => res.json())
     .then(data => {
-        let path = isDFS ? data.dfs : data.bfs;
-
-        if(path.length === 1 && path[0] !== "T"){
-            highlight(path, "red");
-        } else {
-            highlight(path, color);
-        }
-
-        showInfo(path);
+        const path = data.path;
+        highlightPath(path, algo);
+        showInfo(path, algo);
     });
 }
 
-// ================= HIGHLIGHT =================
-function highlight(path, color){
-    nodes.forEach(n => nodes.update({id:n.id, color:null}));
+// ===== HIGHLIGHT =====
+function resetColors() {
+    nodes.forEach(n => {
+        nodes.update({ id: n.id, color: { background: "#e9ecef", border: "#adb5bd" } });
+    });
+}
 
-    if(!path) return;
-
-    path.forEach(id => {
+function highlightPath(path, algo) {
+    if (!path) return;
+    const color = algoColor[algo];
+    path.forEach((id, index) => {
+        const isLast = index === path.length - 1;
+        const isBuntu = deadEndNodes.includes(id);
         nodes.update({
-            id:id,
-            color:{background:color}
+            id,
+            color: {
+                background: isLast && isBuntu ? "#dc3545" : color,
+                border:     isLast && isBuntu ? "#a71d2a" : color
+            }
         });
     });
 }
 
-// ================= INFO =================
-function showInfo(path){
-    const status = document.getElementById("status");
-    const pathText = document.getElementById("path");
-    const box = document.getElementById("infoBox");
+// ===== INFO BOX =====
+function showInfo(path, algo) {
+    const statusEl = document.getElementById("status");
+    const detailEl = document.getElementById("pathDetail");
+    const box      = document.getElementById("infoBox");
 
-    if(path.length === 1 && path[0] !== "T"){
-        box.className = "info-box fail";
-        status.innerHTML = "❌ Proses gagal (tidak mencapai tujuan)";
-        pathText.innerHTML = "Berhenti di node: <b>" + path[0] + " (" + nodeInfo[path[0]] + ")</b>";
+    const lastNode  = path[path.length - 1];
+    const isSuccess = lastNode === "T";
+    const label     = algoLabel[algo];
+    const badge     = algoBadge[algo];
+    const isHeuristic = algo === "greedy" || algo === "astar";
+
+    // Warna box
+    box.className = isSuccess ? "info-box success" : "info-box fail";
+
+    // Status teks
+    if (isSuccess) {
+        statusEl.innerHTML = `✅ <span class="badge ${badge}">${label}</span> Berhasil — plastik mencapai <b>${nodeInfo["T"]}</b>`;
     } else {
-        box.className = "info-box success";
-        status.innerHTML = "✅ Berhasil mencapai tujuan (T)";
-        
-        let detailPath = path.map(n => n + " (" + nodeInfo[n] + ")");
-        pathText.innerHTML = "Jalur: <b>" + detailPath.join(" → ") + "</b>";
+        statusEl.innerHTML = `❌ <span class="badge ${badge}">${label}</span> Gagal — proses berhenti di <b>${lastNode} (${nodeInfo[lastNode]})</b>`;
     }
+
+    // Build chips rute
+    function buildChips(p) {
+        return p.map((n, i) => {
+            const isLast = i === p.length - 1;
+            let cls = isSuccess ? "chip-success" : (isLast ? "chip-fail-end" : "chip-fail");
+            const arrowCls = isSuccess ? "arrow-success" : "arrow-fail";
+            const chip = `<span class="node-chip ${cls}" title="${nodeInfo[n]}">
+                ${n} <span style="font-size:10px;opacity:0.85">(${nodeInfo[n]})</span>
+            </span>`;
+            return i < p.length - 1
+                ? chip + `<span class="arrow-sep ${arrowCls}"> › </span>`
+                : chip;
+        }).join("");
+    }
+
+    // Build tabel heuristik (hanya untuk Greedy & A*)
+    function buildHTable(p) {
+        if (!isHeuristic) return "";
+        let rows = p.map((n, i) => {
+            const g = i;  // g = langkah ke-i dari start
+            const h = heuristicVal[n] === 99 ? "∞" : heuristicVal[n];
+            const f = heuristicVal[n] === 99 ? "∞" : g + heuristicVal[n];
+            const rowClass = i === p.length - 1 ? "active-row" : "";
+            return `<tr class="${rowClass}">
+                <td>${n}</td>
+                <td>${nodeInfo[n]}</td>
+                <td>${g}</td>
+                <td>${h}</td>
+                <td>${algo === "astar" ? f : "—"}</td>
+            </tr>`;
+        }).join("");
+
+        return `
+        <div style="margin-top:14px;">
+            <p style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;">
+                ${algo === "astar"
+                    ? "📐 Detail A* — f(n) = g(n) + h(n)"
+                    : "📐 Detail Greedy — prioritas berdasarkan h(n)"}
+            </p>
+            <table class="h-table">
+                <thead>
+                    <tr>
+                        <th>Node</th>
+                        <th>Keterangan</th>
+                        <th>g(n) langkah</th>
+                        <th>h(n) estimasi</th>
+                        <th>${algo === "astar" ? "f(n) total" : "—"}</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+            <p style="font-size:11px;color:#aaa;margin-top:6px;">
+                g(n) = jumlah langkah nyata dari M &nbsp;|&nbsp;
+                h(n) = estimasi langkah ke T &nbsp;${algo === "astar" ? "|&nbsp; f(n) = g+h" : ""}
+            </p>
+        </div>`;
+    }
+
+    detailEl.innerHTML = `
+        <div class="path-row">
+            <span class="badge ${badge}" style="flex-shrink:0;">Rute ${label}</span>
+            ${buildChips(path)}
+        </div>
+        ${buildHTable(path)}
+        <p style="margin-top:12px;font-size:12px;color:#aaa;">
+            Hover node pada grafik untuk melihat keterangan lengkap.
+        </p>
+    `;
 }
 </script>
-
 </body>
 </html>

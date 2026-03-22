@@ -11,12 +11,12 @@ def bfs(graph, start):
         if node not in visited:
             print("BFS Kunjungi:", node)
 
-            if node == "T":
-                print("✅ BFS sampai tujuan:", path)
-                return path  # ✅ WAJIB RETURN PATH
+            # Berhenti di node tujuan ATAU node jalan buntu
+            if node == "T" or node == "G" or node == "J":
+                print("BFS selesai di:", node, "| Jalur:", " -> ".join(path))
+                return path
 
             visited.add(node)
-
             for neighbor in graph[node]:
                 new_path = list(path)
                 new_path.append(neighbor)

@@ -1,60 +1,81 @@
 from flask import Flask, render_template, request, jsonify
-from graph import graph
+from graph import get_graph_for_scenario, SCENARIO_DESCRIPTIONS
 from bfs import bfs
 from dfs import dfs
+from heuristic import greedy_bfs, astar
 
 app = Flask(__name__)
+
 
 # =========================
 # HALAMAN UTAMA
 # =========================
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", scenarios=SCENARIO_DESCRIPTIONS)
 
 
 # =========================
-# API UNTUK BFS & DFS
+# API: BFS & DFS
 # =========================
 @app.route("/run", methods=["POST"])
 def run():
     data = request.get_json()
-    pilihan = data.get("pilihan")
+    scenario_id = data.get("pilihan")
+    algo = data.get("algo")  # "bfs" atau "dfs"
 
-    # Mapping input ke node awal
-    mapping = {
-        "1": "M",  # Sampah sesuai
-        "2": "G",  # Tidak sesuai → langsung gagal
-        "3": "J"   # Bukan plastik → residu
-    }
+    start = "M"
+    scenario_graph = get_graph_for_scenario(scenario_id)
 
-    start = mapping.get(pilihan)
+    if not scenario_graph:
+        return jsonify({"error": "Skenario tidak valid"}), 400
 
-    if not start:
-        return jsonify({
-            "error": "Input tidak valid"
-        }), 400
+    if algo == "bfs":
+        path = bfs(scenario_graph, start)
+    elif algo == "dfs":
+        path = dfs(scenario_graph, start)
+    else:
+        return jsonify({"error": "Algoritma tidak dikenali"}), 400
 
-    # Jalankan BFS & DFS dari Python
-    bfs_path = bfs(graph, start)
-    dfs_path = dfs(graph, start)
+    if not path:
+        path = [start]
 
-    # =========================
-    # FIX: HANDLE PATH KOSONG
-    # =========================
-    if not bfs_path:
-        bfs_path = [start]
-
-    if not dfs_path:
-        dfs_path = [start]
-
-    # =========================
-    # RESPONSE KE FRONTEND
-    # =========================
     return jsonify({
         "start": start,
-        "bfs": bfs_path,
-        "dfs": dfs_path
+        "algo": algo,
+        "path": path
+    })
+
+
+# =========================
+# API: GREEDY & A*
+# =========================
+@app.route("/run_heuristic", methods=["POST"])
+def run_heuristic():
+    data = request.get_json()
+    scenario_id = data.get("pilihan")
+    algo = data.get("algo")  # "greedy" atau "astar"
+
+    start = "M"
+    scenario_graph = get_graph_for_scenario(scenario_id)
+
+    if not scenario_graph:
+        return jsonify({"error": "Skenario tidak valid"}), 400
+
+    if algo == "greedy":
+        path = greedy_bfs(scenario_graph, start)
+    elif algo == "astar":
+        path = astar(scenario_graph, start)
+    else:
+        return jsonify({"error": "Algoritma tidak dikenali"}), 400
+
+    if not path:
+        path = [start]
+
+    return jsonify({
+        "start": start,
+        "algo": algo,
+        "path": path
     })
 
 
