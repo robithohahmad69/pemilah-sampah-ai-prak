@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulasi Daur Ulang Plastik</title>
+
+    <!-- FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
+    <!-- VIS.JS -->
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <!-- STYLE -->
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 950px;
+            margin: 40px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        select, button {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #network {
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .legend {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .legend span {
+            margin: 0 10px;
+        }
+
+        .green { color: green; }
+        .blue { color: blue; }
+
+        /* INFO BOX */
+        .info-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 5px solid #007bff;
+        }
+
+        .success {
+            border-left: 5px solid green;
+        }
+
+        .fail {
+            border-left: 5px solid red;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="card">
+
+        <h2>Simulasi Daur Ulang Plastik</h2>
+
+        <div class="controls">
+            <select id="pilihan">
+                <option value="1">Sampah sesuai kriteria</option>
+                <option value="2">Tidak sesuai kriteria</option>
+                <option value="3">Bukan sampah plastik</option>
+            </select>
+
+            <button onclick="runBFS()">BFS</button>
+            <button onclick="runDFS()">DFS</button>
+        </div>
+
+        <div id="network"></div>
+
+        <div class="legend">
+            <span class="green">● BFS (Hijau)</span>
+            <span class="blue">● DFS (Biru)</span>
+        </div>
+
+        <!-- INFO -->
+        <div id="infoBox" class="info-box">
+            <h3>Hasil Analisis</h3>
+            <p id="status">Silakan pilih kondisi dan jalankan algoritma</p>
+            <p id="path"></p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// ================= NODE + TOOLTIP =================
+const nodeInfo = {
+    M:"Sampah Masuk",
+    A:"Sorting Manual",
+    B:"Bersihkan Label",
+    C:"Pencacahan",
+    D:"Pencucian",
+    E:"Sink-Float",
+    F:"Pengeringan",
+    H:"Ekstrusi",
+    T:"Produk Akhir (Food Grade)",
+    G:"Gagal: Kontaminasi",
+    I:"Gagal: Degradasi",
+    J:"Residu"
+};
+
+const nodes = new vis.DataSet(
+    Object.keys(nodeInfo).map(id => ({
+        id:id,
+        label:id,
+        title:nodeInfo[id]
+    }))
+);
+
+// ================= EDGE =================
+const edges = new vis.DataSet([
+    {from:"M",to:"A"},
+    {from:"A",to:"B"},{from:"A",to:"G"},
+    {from:"B",to:"C"},
+    {from:"C",to:"D"},
+    {from:"D",to:"E"},{from:"D",to:"J"},
+    {from:"E",to:"F"},{from:"E",to:"G"},
+    {from:"F",to:"H"},
+    {from:"H",to:"T"},{from:"H",to:"I"}
+]);
+
+const network = new vis.Network(
+    document.getElementById("network"),
+    {nodes, edges},
+    {edges:{arrows:"to"}}
+);
+
+// ================= RUN =================
+function getStart(){
+    return {
+        "1":"M",
+        "2":"G",
+        "3":"J"
+    }[document.getElementById("pilihan").value];
+}
+
+function runBFS(){
+    run("green", false);
+}
+
+function runDFS(){
+    run("blue", true);
+}
+
+function run(color, isDFS){
+    let pilihan = document.getElementById("pilihan").value;
+
+    fetch("/run", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({pilihan})
+    })
+    .then(res => res.json())
+    .then(data => {
+        let path = isDFS ? data.dfs : data.bfs;
+
+        if(path.length === 1 && path[0] !== "T"){
+            highlight(path, "red");
+        } else {
+            highlight(path, color);
+        }
+
+        showInfo(path);
+    });
+}
+
+// ================= HIGHLIGHT =================
+function highlight(path, color){
+    nodes.forEach(n => nodes.update({id:n.id, color:null}));
+
+    if(!path) return;
+
+    path.forEach(id => {
+        nodes.update({
+            id:id,
+            color:{background:color}
+        });
+    });
+}
+
+// ================= INFO =================
+function showInfo(path){
+    const status = document.getElementById("status");
+    const pathText = document.getElementById("path");
+    const box = document.getElementById("infoBox");
+
+    if(path.length === 1 && path[0] !== "T"){
+        box.className = "info-box fail";
+        status.innerHTML = "❌ Proses gagal (tidak mencapai tujuan)";
+        pathText.innerHTML = "Berhenti di node: <b>" + path[0] + " (" + nodeInfo[path[0]] + ")</b>";
+    } else {
+        box.className = "info-box success";
+        status.innerHTML = "✅ Berhasil mencapai tujuan (T)";
+        
+        let detailPath = path.map(n => n + " (" + nodeInfo[n] + ")");
+        pathText.innerHTML = "Jalur: <b>" + detailPath.join(" → ") + "</b>";
+    }
+}
+</script>
+
+</body>
+</html>

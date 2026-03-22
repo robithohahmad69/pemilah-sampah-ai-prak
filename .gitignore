@@ -1,0 +1,27 @@
+# --- Python Environment ---
+venv/
+env/
+.env
+bin/
+lib/
+include/
+
+# --- Python Cache ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Flask & Web ---
+instance/
+.webassets-cache
+static/.webassets-cache
+
+# --- OS & Editors ---
+.DS_Store
+.vscode/
+.idea/
+Thumbs.db
+
+# --- Requirements Check (Opsional) ---
+# Jika kamu tidak ingin mengirim file log hasil error
+*.log
